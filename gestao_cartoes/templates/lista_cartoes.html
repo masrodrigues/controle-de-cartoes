@@ -1,0 +1,14 @@
+{% extends 'base.html' %} 
+<!-- lista_cartoes.html -->
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <h2 class="text-2xl font-bold mb-4">Cartões de Crédito</h2>
+    <ul class="bg-white rounded-lg border border-gray-200 w-full text-gray-900">
+        {% for cartao in cartoes %}
+        <li class="px-6 py-2 border-b border-gray-200 w-full rounded-t-lg">
+            <a href="{% url 'detalhes_cartao' cartao.id %}" class="hover:text-blue-600 transition-colors duration-200">{{ cartao.nome }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
