@@ -5,7 +5,7 @@ from .models import Gasto, Cartao, Categoria
 class GastoForm(forms.ModelForm):
     class Meta:
         model = Gasto
-        fields = ['cartao', 'valor', 'data', 'categoria', 'descricao']
+        fields = ['cartao', 'valor', 'data', 'categoria', 'descricao', 'parcelas']
         widgets = {
             'cartao': forms.Select(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight'}),
             'data': forms.DateInput(attrs={'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight', 'type': 'date'}),

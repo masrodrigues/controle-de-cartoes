@@ -28,11 +28,36 @@ class DetalhesCartaoView(DetailView):
         context['gastos'] = Gasto.objects.filter(cartao=self.get_object()).order_by('-data')
         return context
 
+from django.db import transaction
+from datetime import timedelta
+
+from django.views.generic.edit import CreateView
+from django.db import transaction
+from datetime import timedelta
+from .models import Gasto  # Certifique-se de que o caminho de importação está correto
+
 class AdicionarGastoView(CreateView):
     model = Gasto
-    form_class = GastoForm
-    template_name = 'adicionar_gasto.html'
-    success_url = reverse_lazy('lista_cartoes')
+    fields = ['cartao', 'valor', 'data', 'categoria', 'descricao', 'parcelas']
+    template_name = 'adicionar_gasto.html'  # Substitua pelo caminho correto do seu template
+    success_url = '/url-de-sucesso/'  # Substitua pela URL para redirecionar após o sucesso
+
+    def form_valid(self, form):
+        with transaction.atomic():  # Garante que todas as inserções sejam feitas juntas
+            self.object = form.save(commit=False)
+            parcelas = form.cleaned_data.get('parcelas', 1)
+            self.object.save()  # Salva o primeiro gasto
+            for i in range(1, parcelas):
+                gasto_parcelado = Gasto(
+                    cartao=self.object.cartao,
+                    valor=self.object.valor,
+                    data=self.object.data + timedelta(days=30*i),  # Ajusta a data para o próximo mês
+                    categoria=self.object.categoria,
+                    descricao=f"{self.object.descricao} (Parcela {i+1} de {parcelas})",
+                    parcelas=1  # Cada parcela é tratada individualmente
+                )
+                gasto_parcelado.save()
+        return super().form_valid(form)
 
 class EditarGastoView(UpdateView):
     model = Gasto
