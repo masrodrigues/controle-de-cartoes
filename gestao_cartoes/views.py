@@ -38,12 +38,12 @@ from .models import Gasto  # Certifique-se de que o caminho de importação est�
 
 class AdicionarGastoView(CreateView):
     model = Gasto
-    fields = ['cartao', 'valor', 'data', 'categoria', 'descricao', 'parcelas']
-    template_name = 'adicionar_gasto.html'  # Substitua pelo caminho correto do seu template
-    success_url = '/url-de-sucesso/'  # Substitua pela URL para redirecionar após o sucesso
+    form_class = GastoForm  # Use o GastoForm personalizado
+    template_name = 'adicionar_gasto.html'
+    success_url = reverse_lazy('lista_cartoes')  # Certifique-se de que esta URL está corretamente configurada
 
     def form_valid(self, form):
-        with transaction.atomic():  # Garante que todas as inserções sejam feitas juntas
+        with transaction.atomic():
             self.object = form.save(commit=False)
             parcelas = form.cleaned_data.get('parcelas', 1)
             self.object.save()  # Salva o primeiro gasto
@@ -51,14 +51,13 @@ class AdicionarGastoView(CreateView):
                 gasto_parcelado = Gasto(
                     cartao=self.object.cartao,
                     valor=self.object.valor,
-                    data=self.object.data + timedelta(days=30*i),  # Ajusta a data para o próximo mês
+                    data=self.object.data + timedelta(days=30*i),
                     categoria=self.object.categoria,
                     descricao=f"{self.object.descricao} (Parcela {i+1} de {parcelas})",
-                    parcelas=1  # Cada parcela é tratada individualmente
+                    parcelas=1
                 )
                 gasto_parcelado.save()
         return super().form_valid(form)
-
 class EditarGastoView(UpdateView):
     model = Gasto
     form_class = GastoForm
