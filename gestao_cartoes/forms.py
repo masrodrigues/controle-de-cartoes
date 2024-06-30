@@ -30,14 +30,23 @@ class CategoriaForm(forms.ModelForm):
         widgets = {
         }
 
+
+
+
+
 class CartaoForm(forms.ModelForm):
     vencimento = forms.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(31)],
                                     help_text="Informe um dia entre 1 e 31")
 
     class Meta:
         model = Cartao
-        fields = ['nome', 'limite', 'vencimento']
+        fields = ['nome', 'limite', 'vencimento','imagem']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             # Adicione widgets para os outros campos conforme necessário
         }
+        
+class ConfirmDeleteForm(forms.Form):
+    confirm = forms.BooleanField(label="Confirma a exclusão?", required=True)
+    
+    

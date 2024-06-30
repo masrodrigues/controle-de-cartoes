@@ -6,6 +6,8 @@
     <title>{% block title %}Sistema Gestão de Cartões{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,43 +22,47 @@
     </span>
 
     <div id="sidebar" class="fixed top-0 bottom-0 lg:left-0 p-2 w-[300px] overflow-y-auto text-center bg-gray-900 -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
-    <div class="text-gray-100 text-xl">
-        <div class="p-2.5 mt-1 flex items-center justify-between">
-            <i class="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>
-            <h1 class="font-bold text-gray-200 text-[15px] ml-3 mt-6">Gerenciamento de Cartões</h1>
-            {% comment %} <i class="bi bi-x cursor-pointer" onclick="toggleSidebar()"></i> {% endcomment %}
+        <div class="text-gray-100 text-xl">
+            <div class="p-2.5 mt-1 flex items-center justify-between">
+                <i class="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>
+                <h1 class="font-bold text-gray-200 text-[15px] ml-3 mt-6">Gerenciamento de Cartões</h1>
+                {% comment %} <i class="bi bi-x cursor-pointer" onclick="toggleSidebar()"></i> {% endcomment %}
+            </div>
+            <div class="my-2 bg-gray-600 h-[1px]"></div>
         </div>
-        <div class="my-2 bg-gray-600 h-[1px]"></div>
+
+        <a href="{% url 'lista_cartoes' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
+            <i class="bi bi-credit-card-2-front-fill"></i>
+            <span class="text-[15px] ml-4 text-gray-200 font-bold">Cartões</span>
+        </a>
+
+        <a href="{% url 'adicionar_cartao' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span class="text-[15px] ml-4 text-gray-200 font-bold">Adicionar Cartão</span>
+        </a>
+
+        <a href="{% url 'adicionar_gasto' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
+            <i class="bi bi-cash-stack"></i>
+            <span class="text-[15px] ml-4 text-gray-200 font-bold">Adicionar Gasto</span>
+        </a>
+
+        <a href="{% url 'cadastro_categoria' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
+            <i class="bi bi-list-ul"></i>
+            <span class="text-[15px] ml-4 text-gray-200 font-bold">Categorias de Gastos</span>
+        </a>
+
+        <a href="{% url 'relatorio_gastos' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
+            <i class="bi bi-bar-chart-fill"></i>
+            <span class="text-[15px] ml-4 text-gray-200 font-bold">Relatório de Gastos</span>
+        </a>
     </div>
-
-    <a href="{% url 'lista_cartoes' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
-        <i class="bi bi-credit-card-2-front-fill"></i>
-        <span class="text-[15px] ml-4 text-gray-200 font-bold">Cartões</span>
-    </a>
-
-    <a href="{% url 'adicionar_cartao' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
-        <i class="bi bi-plus-circle-fill"></i>
-        <span class="text-[15px] ml-4 text-gray-200 font-bold">Adicionar Cartão</span>
-    </a>
-
-    <a href="{% url 'adicionar_gasto' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
-        <i class="bi bi-cash-stack"></i>
-        <span class="text-[15px] ml-4 text-gray-200 font-bold">Adicionar Gasto</span>
-    </a>
-
-    <a href="{% url 'cadastro_categoria' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
-        <i class="bi bi-list-ul"></i>
-        <span class="text-[15px] ml-4 text-gray-200 font-bold">Categorias de Gastos</span>
-
-    <a href="{% url 'relatorio_gastos' %}" class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white">
-        <i class="bi bi-bar-chart-fill"></i>
-        <span class="text-[15px] ml-4 text-gray-200 font-bold">Relatório de Gastos</span>
-    </a>
-</div>
 
     <div id="main-content" class="ml-0 lg:ml-64 p-4">
         {% block content %}{% endblock %}
     </div>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script>
         function toggleSidebar() {
@@ -66,4 +72,3 @@
     </script>
 </body>
 </html>
-

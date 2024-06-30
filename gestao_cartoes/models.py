@@ -1,14 +1,15 @@
 # models.py
 from django.db import models
 
+
 class Cartao(models.Model):
     nome = models.CharField(max_length=100)
     limite = models.DecimalField(max_digits=10, decimal_places=2)
-    vencimento = models.IntegerField()  # Garanta que este campo exista e esteja correto
+    vencimento = models.IntegerField()
+    imagem = models.ImageField(upload_to='imagens_cartoes/', default='imagens_cartoes/default_image.jpg')
 
     def __str__(self):
         return self.nome
-
 class Categoria(models.Model):
     nome = models.CharField(max_length=100)
 

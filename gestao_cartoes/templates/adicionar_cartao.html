@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
+{% load my_filters %}
 
-{% load widget_tweaks %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto py-8 px-4">
     <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 class="text-2xl font-bold mb-4">Cadastro de Cartão</h2>
-        <form method="post" class="needs-validation" novalidate>
+        <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
                 <label for="{{ form.nome.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Nome do Cartão:</label>
@@ -27,6 +27,14 @@
                 {{ form.vencimento|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" }}
                 {% if form.vencimento.errors %}
                     <p class="text-red-500 text-xs italic">{{ form.vencimento.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+            <!-- Campo de upload de imagem -->
+            <div class="mb-3">
+                <label for="{{ form.imagem.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Imagem do Cartão:</label>
+                {{ form.imagem|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" }}
+                {% if form.imagem.errors %}
+                    <p class="text-red-500 text-xs italic">{{ form.imagem.errors|join:", " }}</p>
                 {% endif %}
             </div>
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Salvar</button>

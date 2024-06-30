@@ -1,12 +1,29 @@
-{% extends 'base.html' %} 
-<!-- lista_cartoes.html -->
+{% extends 'base.html' %}
+{% load my_filters %}
+
 {% block content %}
 <div class="max-w-4xl mx-auto py-8">
-    <h2 class="text-2xl font-bold mb-4">Cartões de Crédito</h2>
-    <ul class="bg-white rounded-lg border border-gray-200 w-full text-gray-900">
+    <h2 class="text-2xl font-bold mb-4 text-center">Cartões de Crédito</h2>
+    <ul class="bg-white rounded-lg border border-gray-200 shadow-md w-full text-gray-900">
         {% for cartao in cartoes %}
-        <li class="px-6 py-2 border-b border-gray-200 w-full rounded-t-lg">
-            <a href="{% url 'detalhes_cartao' cartao.id %}" class="hover:text-blue-600 transition-colors duration-200">{{ cartao.nome }}</a>
+        <li class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center space-x-4">
+                {% if cartao.imagem %}
+                <img src="{{ cartao.imagem.url }}" alt="Imagem do {{ cartao.nome }}" class="w-16 h-auto rounded">
+                {% else %}
+                <img src="{{ MEDIA_URL }}imagens_cartoes/default_image.jpg" alt="Imagem padrão" class="w-16 h-auto rounded">
+                {% endif %}
+                <div>
+                    <strong class="text-lg font-semibold">{{ cartao.nome }}</strong><br>
+                    <span class="text-sm text-gray-600">Limite: R$ {{ cartao.limite }}</span><br>
+                    <span class="text-sm text-gray-600">Vencimento: {{ cartao.vencimento }}</span>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <a href="{% url 'detalhes_cartao' cartao.id %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Detalhes</a>
+                <a href="{% url 'editar_cartao' cartao.id %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Editar</a>
+                <a href="{% url 'excluir_cartao' cartao.id %}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Excluir</a>
+            </div>
         </li>
         {% endfor %}
     </ul>

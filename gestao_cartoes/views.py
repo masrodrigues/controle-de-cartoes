@@ -115,12 +115,22 @@ class RelatorioGastosView(TemplateView):
             9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
         }
         return meses.get(numero_mes, "Mês Inválido")
-
+from django.urls import reverse_lazy
+from django.views.generic.edit import CreateView
+from .forms import CartaoForm
+from .models import Cartao
 class AdicionarCartaoView(CreateView):
     model = Cartao
-    fields = ['nome', 'limite', 'vencimento']
+    form_class = CartaoForm
     template_name = 'adicionar_cartao.html'
-    success_url = reverse_lazy('lista_cartoes')
+    success_url = reverse_lazy('lista_cartoes')  # Substitua 'lista_cartoes' pela URL de redirecionamento desejada
+
+    def get_form_kwargs(self):
+        """Este método é sobrescrito para incluir request.FILES no formulário."""
+        kwargs = super(AdicionarCartaoView, self).get_form_kwargs()
+        if self.request.method in ('POST', 'PUT'):
+            kwargs['files'] = self.request.FILES
+        return kwargs
 
 def gastos_por_categoria(request, categoria_id):
     gastos = Gasto.objects.filter(categoria__id=categoria_id)
@@ -135,4 +145,43 @@ def cadastro_categoria(request):
     else:
         form = CategoriaForm()
     return render(request, 'cadastro_categoria.html', {'form': form})
+
+# views.py - Adicionando EditarCartaoView e ExcluirCartaoView
+from django.views.generic.edit import UpdateView, DeleteView
+from django.urls import reverse_lazy
+
+# views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Cartao
+from .forms import CartaoForm
+
+def editar_cartao(request, cartao_id):
+    cartao = get_object_or_404(Cartao, id=cartao_id)
+    if request.method == 'POST':
+        form = CartaoForm(request.POST, instance=cartao)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_cartoes')  # Redirecionar para a lista de cartões após salvar
+    else:
+        form = CartaoForm(instance=cartao)
+    return render(request, 'editar_cartao.html', {'form': form})
+
+
+# views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from .models import Cartao
+from .forms import ConfirmDeleteForm
+
+def excluir_cartao_view(request, pk):
+    cartao = get_object_or_404(Cartao, pk=pk)
+    if request.method == 'POST':
+        form = ConfirmDeleteForm(request.POST)
+        if form.is_valid() and form.cleaned_data['confirm']:
+            cartao.delete()
+            return redirect(reverse('lista_cartoes'))
+    else:
+        form = ConfirmDeleteForm()
+    return render(request, 'confirmar_exclusao.html', {'form': form, 'cartao': cartao})
+
 
