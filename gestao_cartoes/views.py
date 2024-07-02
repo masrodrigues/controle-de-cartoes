@@ -37,17 +37,17 @@ class DetalhesCartaoView(DetailView):
 
         # Calcula o próximo vencimento
         if hoje.day > vencimento_dia:
-            mes_fim = hoje.month
+            mes_vencimento = hoje.month + 1 if hoje.month < 12 else 1
+            ano_vencimento = hoje.year if hoje.month < 12 else hoje.year + 1
         else:
-            mes_fim = hoje.month - 1 if hoje.month > 1 else 12
-        ano_fim = hoje.year if mes_fim != 12 else hoje.year - 1
+            mes_vencimento = hoje.month
+            ano_vencimento = hoje.year
 
-        data_fim = date(ano_fim, mes_fim, vencimento_dia)
+        proximo_vencimento = date(ano_vencimento, mes_vencimento, vencimento_dia)
         
-        # Ajusta a data de fim para garantir que ela seja sempre no passado
-        if data_fim > hoje:
-            data_fim = data_fim - timedelta(days=30)
-
+        # Ajusta a data de fechamento para ser 10 dias antes do próximo vencimento
+        data_fim = proximo_vencimento - timedelta(days=10)
+        
         # Calcula a data de início como 30 dias antes da data de fim
         data_inicio = data_fim - timedelta(days=30)
         
@@ -67,6 +67,7 @@ class DetalhesCartaoView(DetailView):
 
         context['gastos'] = gastos
         return context
+
 
 
 
