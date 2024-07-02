@@ -17,6 +17,10 @@ class ListaCartoesView(ListView):
     template_name = 'lista_cartoes.html'
     context_object_name = 'cartoes'
 
+from datetime import date, timedelta
+from django.views.generic.detail import DetailView
+from .models import Cartao, Gasto
+
 class DetalhesCartaoView(DetailView):
     model = Cartao
     template_name = 'detalhes_cartao.html'
@@ -24,9 +28,47 @@ class DetalhesCartaoView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        logger.debug(f"Vencimento: {self.object.vencimento}")
-        context['gastos'] = Gasto.objects.filter(cartao=self.get_object()).order_by('-data')
+        cartao = self.object
+        
+        hoje = date.today()
+        vencimento_dia = cartao.vencimento
+
+        print(f"Data de Hoje: {hoje}, Dia de Vencimento: {vencimento_dia}")
+
+        # Calcula o próximo vencimento
+        if hoje.day > vencimento_dia:
+            mes_fim = hoje.month
+        else:
+            mes_fim = hoje.month - 1 if hoje.month > 1 else 12
+        ano_fim = hoje.year if mes_fim != 12 else hoje.year - 1
+
+        data_fim = date(ano_fim, mes_fim, vencimento_dia)
+        
+        # Ajusta a data de fim para garantir que ela seja sempre no passado
+        if data_fim > hoje:
+            data_fim = data_fim - timedelta(days=30)
+
+        # Calcula a data de início como 30 dias antes da data de fim
+        data_inicio = data_fim - timedelta(days=30)
+        
+        print(f"Data de Início: {data_inicio}, Data de Fim: {data_fim}")
+
+        # Formatar datas para comparação precisa
+        data_inicio_str = data_inicio.strftime('%Y-%m-%d')
+        data_fim_str = data_fim.strftime('%Y-%m-%d')
+        print(f"Data de Início (str): {data_inicio_str}, Data de Fim (str): {data_fim_str}")
+
+        gastos = Gasto.objects.filter(cartao=cartao, data__gte=data_inicio_str, data__lt=data_fim_str)
+        
+        # Debug: Verifique o número de gastos encontrados
+        print(f"Total de Gastos Encontrados: {gastos.count()}")
+        for gasto in gastos:
+            print(f"Gasto: {gasto.descricao}, Valor: {gasto.valor}, Data: {gasto.data}")
+
+        context['gastos'] = gastos
         return context
+
+
 
 from django.db import transaction
 from datetime import timedelta
