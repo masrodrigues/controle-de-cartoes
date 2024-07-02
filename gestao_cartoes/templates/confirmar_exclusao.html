@@ -2,14 +2,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
-    <h2 class="text-2xl font-bold mb-4">Excluir Cartão</h2>
-    <p>Tem certeza que deseja excluir o cartão "{{ cartao.nome }}"?</p>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
-        <a href="{% url 'lista_cartoes' %}" class="btn btn-secondary">Cancelar</a>
-    </form>
+<div class="container mt-5">
+    <div class="row justify-content-center ">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0">Excluir Cartão</h2>
+                </div>
+                <div class="card-body">
+                    <p>Tem certeza que deseja excluir o cartão "<strong>{{ cartao.nome }}</strong>"?</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Confirmar Exclusão
+                            </button>
+                            <a href="{% url 'lista_cartoes' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

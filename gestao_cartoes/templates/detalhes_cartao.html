@@ -14,16 +14,26 @@
             <p class="mb-4 text-lg"><strong>Vencimento:</strong> Dia {{ cartao.vencimento }} de cada mês</p>
         </div>
         <h3 class="text-xl font-bold text-gray-700 mt-6 mb-2">Gastos</h3>
-        <ul class="list-disc list-inside">
+        <ul class="list-disc">
             {% if gastos %}
                 {% for gasto in gastos %}
                 <li class="mb-2">
                     <div class="flex items-center justify-between">
-                        <span>{{ gasto.descricao }}</span>
-                        <span class="font-semibold">R$ {{ gasto.valor | floatformat:2 }}</span>
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        Data: {{ gasto.data }} - Categoria: {{ gasto.categoria.nome }}
+                        <div>
+                            <span>{{ gasto.descricao }}</span>
+                            <div class="text-sm text-gray-600">
+                                Data: {{ gasto.data }} - Categoria: {{ gasto.categoria.nome }}
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="font-semibold mr-2">R$ {{ gasto.valor | floatformat:2 }}</span>
+                            <form action="{% url 'excluir_gasto' gasto.id %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </li>
                 {% endfor %}

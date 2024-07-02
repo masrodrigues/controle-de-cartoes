@@ -227,4 +227,14 @@ def excluir_cartao_view(request, pk):
         form = ConfirmDeleteForm()
     return render(request, 'confirmar_exclusao.html', {'form': form, 'cartao': cartao})
 
+from django.shortcuts import get_object_or_404, redirect
+from .models import Gasto
+
+def excluir_gasto(request, gasto_id):
+    gasto = get_object_or_404(Gasto, id=gasto_id)
+    cartao_id = gasto.cartao.id
+    gasto.delete()
+    return redirect('detalhes_cartao', pk=cartao_id)
+
+
 
