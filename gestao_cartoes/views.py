@@ -260,3 +260,11 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'register.html', {'form': form})
+
+# gestao_cartoes/views.py
+from django.shortcuts import redirect
+from django.contrib.auth import logout
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')

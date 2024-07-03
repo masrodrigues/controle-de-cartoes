@@ -34,4 +34,5 @@ urlpatterns = [
     path('cartao/excluir/<int:pk>/', excluir_cartao_view, name='excluir_cartao'),
     path('gasto/excluir/<int:gasto_id>/', excluir_gasto, name='excluir_gasto'),
     path('register/', views.register, name='register'),
+    path('logout/', views.logout_view, name='logout'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
