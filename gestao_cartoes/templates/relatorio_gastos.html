@@ -6,6 +6,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto py-8 px-4">
     <h2 class="text-2xl font-bold mb-6">Relatório de Gastos por Cartão - Mês: {{ nome_mes_selecionado }}</h2>
+    
     <!-- Seleção de Mês -->
     <div class="mb-4">
         {% for mes, nome_mes in meses %}
@@ -25,7 +26,14 @@
             <tbody class="text-gray-700">
                 {% for item in relatorio %}
                 <tr>
-                    <td class="border px-4 py-2">{{ item.cartao.nome }}</td>
+                    <td class="border px-4 py-2 flex items-center">
+                        {% if item.cartao.imagem %}
+                        <img src="{{ item.cartao.imagem.url }}" alt="Imagem do {{ item.cartao.nome }}" class="w-10 h-auto mr-4 rounded">
+                        {% else %}
+                        <img src="{{ MEDIA_URL }}imagens_cartoes/default_image.jpg" alt="Imagem padrão" class="w-10 h-auto mr-4 rounded">
+                        {% endif %}
+                        {{ item.cartao.nome }}
+                    </td>
                     <td class="border px-4 py-2">{{ item.total_gastos | floatformat:2 }}</td>
                 </tr>
                 {% empty %}
@@ -33,9 +41,8 @@
                     <td colspan="2" class="border px-4 py-2 text-center">Nenhum gasto registrado.</td>
                 </tr>
                 {% endfor %}
-                <!-- Rodapé da Tabela para Total Geral -->
-                <tr class="bg-gray-200">
-                    <td class="border px-4 py-2 font-bold">Total Geral</td>
+                <tr>
+                    <td class="border px-4 py-2 font-bold text-right">Total Geral:</td>
                     <td class="border px-4 py-2 font-bold">{{ total_gastos_geral | floatformat:2 }}</td>
                 </tr>
             </tbody>
