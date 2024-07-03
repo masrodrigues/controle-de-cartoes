@@ -107,16 +107,36 @@ class RelatorioGastosView(TemplateView):
         context['nome_mes_selecionado'] = self.mapear_numero_para_mes(mes_atual)
         context['meses'] = [(i, self.mapear_numero_para_mes(i)) for i in range(1, 13)]
 
-        # Filtrar gastos por mês
-        primeiro_dia_mes = datetime(ano_atual, mes_atual, 1)
-        ultimo_dia_mes = datetime(ano_atual, mes_atual + 1, 1) if mes_atual < 12 else datetime(ano_atual + 1, 1, 1)
-        gastos_mes = Gasto.objects.filter(data__gte=primeiro_dia_mes, data__lt=ultimo_dia_mes).order_by('cartao')
         relatorio = {}
-        for gasto in gastos_mes:
-            if gasto.cartao not in relatorio:
-                relatorio[gasto.cartao] = 0
-            relatorio[gasto.cartao] += gasto.valor
+        total_gastos_geral = 0
+        cartoes = Cartao.objects.all()
+        for cartao in cartoes:
+            vencimento_dia = cartao.vencimento
+            primeiro_dia_mes = datetime(ano_atual, mes_atual, 1)
+            ultimo_dia_mes = (primeiro_dia_mes + timedelta(days=32)).replace(day=1)
+
+            if primeiro_dia_mes.day > vencimento_dia:
+                mes_vencimento = primeiro_dia_mes.month + 1 if primeiro_dia_mes.month < 12 else 1
+                ano_vencimento = primeiro_dia_mes.year if primeiro_dia_mes.month < 12 else primeiro_dia_mes.year + 1
+            else:
+                mes_vencimento = primeiro_dia_mes.month
+                ano_vencimento = primeiro_dia_mes.year
+
+            proximo_vencimento = date(ano_vencimento, mes_vencimento, vencimento_dia)
+            data_fim = proximo_vencimento - timedelta(days=10)
+            data_inicio = data_fim - timedelta(days=30)
+            
+            data_inicio_str = data_inicio.strftime('%Y-%m-%d')
+            data_fim_str = data_fim.strftime('%Y-%m-%d')
+
+            gastos = Gasto.objects.filter(cartao=cartao, data__gte=data_inicio_str, data__lt=data_fim_str).order_by('data')
+            total_gastos = gastos.aggregate(Sum('valor'))['valor__sum'] or 0
+
+            relatorio[cartao] = total_gastos
+            total_gastos_geral += total_gastos
+
         context['relatorio'] = [{'cartao': cartao, 'total_gastos': total} for cartao, total in relatorio.items()]
+        context['total_gastos_geral'] = total_gastos_geral
 
         return context
 
@@ -127,6 +147,8 @@ class RelatorioGastosView(TemplateView):
             9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
         }
         return meses.get(numero_mes, "Mês Inválido")
+
+
 
 # Adicionar Cartão
 class AdicionarCartaoView(CreateView):
