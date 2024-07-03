@@ -3,7 +3,9 @@
 {% load widget_tweaks %}
 
 {% block content %}
+
 <div class="max-w-4xl mx-auto py-2 px-4">
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
     <h2 class="text-2xl font-bold mb-2">Adicionar Gasto</h2>
     <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-6 mb-4">
         {% csrf_token %}
@@ -23,7 +25,9 @@
             Salvar
         </button>
     </form>
+    </div>
 </div>
+
 
 <!-- Flatpickr Initialization -->
 <script>

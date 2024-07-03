@@ -1,26 +1,27 @@
-from django.shortcuts import render, redirect
-from django.urls import reverse_lazy
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView, DetailView, TemplateView, CreateView, UpdateView
-from django.db.models import Sum, Q
+from django.views.generic.edit import DeleteView
 from django.utils import timezone
-from datetime import datetime
+from django.db import transaction
+from django.db.models import Sum, Q
+from datetime import datetime, date, timedelta
 
 from .models import Cartao, Gasto
-from .forms import GastoForm, CategoriaForm
+from .forms import GastoForm, CartaoForm, CategoriaForm, ConfirmDeleteForm
 
 import logging
 
+# Configura o logger para o Django
 logger = logging.getLogger(__name__)
 
+# Lista de Cartões
 class ListaCartoesView(ListView):
     model = Cartao
     template_name = 'lista_cartoes.html'
     context_object_name = 'cartoes'
 
-from datetime import date, timedelta
-from django.views.generic.detail import DetailView
-from .models import Cartao, Gasto
-
+# Detalhes do Cartão
 class DetalhesCartaoView(DetailView):
     model = Cartao
     template_name = 'detalhes_cartao.html'
@@ -32,8 +33,6 @@ class DetalhesCartaoView(DetailView):
         
         hoje = date.today()
         vencimento_dia = cartao.vencimento
-
-        print(f"Data de Hoje: {hoje}, Dia de Vencimento: {vencimento_dia}")
 
         # Calcula o próximo vencimento
         if hoje.day > vencimento_dia:
@@ -50,40 +49,22 @@ class DetalhesCartaoView(DetailView):
         
         # Calcula a data de início como 30 dias antes da data de fim
         data_inicio = data_fim - timedelta(days=30)
-        
-        print(f"Data de Início: {data_inicio}, Data de Fim: {data_fim}")
 
         # Formatar datas para comparação precisa
         data_inicio_str = data_inicio.strftime('%Y-%m-%d')
         data_fim_str = data_fim.strftime('%Y-%m-%d')
-        print(f"Data de Início (str): {data_inicio_str}, Data de Fim (str): {data_fim_str}")
 
         gastos = Gasto.objects.filter(cartao=cartao, data__gte=data_inicio_str, data__lt=data_fim_str)
-        
-        # Debug: Verifique o número de gastos encontrados
-        print(f"Total de Gastos Encontrados: {gastos.count()}")
-        for gasto in gastos:
-            print(f"Gasto: {gasto.descricao}, Valor: {gasto.valor}, Data: {gasto.data}")
 
         context['gastos'] = gastos
         return context
 
-
-
-
-from django.db import transaction
-from datetime import timedelta
-
-from django.views.generic.edit import CreateView
-from django.db import transaction
-from datetime import timedelta
-from .models import Gasto  # Certifique-se de que o caminho de importação está correto
-
+# Adicionar Gasto
 class AdicionarGastoView(CreateView):
     model = Gasto
-    form_class = GastoForm  # Use o GastoForm personalizado
+    form_class = GastoForm
     template_name = 'adicionar_gasto.html'
-    success_url = reverse_lazy('lista_cartoes')  # Certifique-se de que esta URL está corretamente configurada
+    success_url = reverse_lazy('lista_cartoes')
 
     def form_valid(self, form):
         with transaction.atomic():
@@ -94,34 +75,22 @@ class AdicionarGastoView(CreateView):
                 gasto_parcelado = Gasto(
                     cartao=self.object.cartao,
                     valor=self.object.valor,
-                    data=self.object.data + timedelta(days=30*i),
+                    data=self.object.data + timedelta(days=30 * i),
                     categoria=self.object.categoria,
-                    descricao=f"{self.object.descricao} (Parcela {i+1} de {parcelas})",
+                    descricao=f"{self.object.descricao} (Parcela {i + 1} de {parcelas})",
                     parcelas=1
                 )
                 gasto_parcelado.save()
         return super().form_valid(form)
+
+# Editar Gasto
 class EditarGastoView(UpdateView):
     model = Gasto
     form_class = GastoForm
     template_name = 'editar_gasto.html'
     success_url = reverse_lazy('lista_cartoes')
 
-import logging
-
-# Configura o logger para o Django
-logger = logging.getLogger(__name__)
-
-from django.views.generic import TemplateView
-from django.utils import timezone
-
-from django.views.generic import TemplateView
-from django.utils import timezone
-from django.db.models import Sum
-from datetime import datetime
-
-from .models import Gasto, Cartao
-
+# Relatório de Gastos
 class RelatorioGastosView(TemplateView):
     template_name = 'relatorio_gastos.html'
 
@@ -158,64 +127,34 @@ class RelatorioGastosView(TemplateView):
             9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
         }
         return meses.get(numero_mes, "Mês Inválido")
-from django.urls import reverse_lazy
-from django.views.generic.edit import CreateView
-from .forms import CartaoForm
-from .models import Cartao
+
+# Adicionar Cartão
 class AdicionarCartaoView(CreateView):
     model = Cartao
     form_class = CartaoForm
     template_name = 'adicionar_cartao.html'
-    success_url = reverse_lazy('lista_cartoes')  # Substitua 'lista_cartoes' pela URL de redirecionamento desejada
+    success_url = reverse_lazy('lista_cartoes')
 
     def get_form_kwargs(self):
         """Este método é sobrescrito para incluir request.FILES no formulário."""
-        kwargs = super(AdicionarCartaoView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         if self.request.method in ('POST', 'PUT'):
             kwargs['files'] = self.request.FILES
         return kwargs
 
-def gastos_por_categoria(request, categoria_id):
-    gastos = Gasto.objects.filter(categoria__id=categoria_id)
-    return render(request, 'gastos_por_categoria.html', {'gastos': gastos})
-
-def cadastro_categoria(request):
-    if request.method == 'POST':
-        form = CategoriaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('lista_cartoes')
-    else:
-        form = CategoriaForm()
-    return render(request, 'cadastro_categoria.html', {'form': form})
-
-# views.py - Adicionando EditarCartaoView e ExcluirCartaoView
-from django.views.generic.edit import UpdateView, DeleteView
-from django.urls import reverse_lazy
-
-# views.py
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Cartao
-from .forms import CartaoForm
-
+# Editar Cartão
 def editar_cartao(request, cartao_id):
     cartao = get_object_or_404(Cartao, id=cartao_id)
     if request.method == 'POST':
         form = CartaoForm(request.POST, instance=cartao)
         if form.is_valid():
             form.save()
-            return redirect('lista_cartoes')  # Redirecionar para a lista de cartões após salvar
+            return redirect('lista_cartoes')
     else:
         form = CartaoForm(instance=cartao)
     return render(request, 'editar_cartao.html', {'form': form})
 
-
-# views.py
-from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse
-from .models import Cartao
-from .forms import ConfirmDeleteForm
-
+# Excluir Cartão
 def excluir_cartao_view(request, pk):
     cartao = get_object_or_404(Cartao, pk=pk)
     if request.method == 'POST':
@@ -227,14 +166,25 @@ def excluir_cartao_view(request, pk):
         form = ConfirmDeleteForm()
     return render(request, 'confirmar_exclusao.html', {'form': form, 'cartao': cartao})
 
-from django.shortcuts import get_object_or_404, redirect
-from .models import Gasto
-
+# Excluir Gasto
 def excluir_gasto(request, gasto_id):
     gasto = get_object_or_404(Gasto, id=gasto_id)
     cartao_id = gasto.cartao.id
     gasto.delete()
     return redirect('detalhes_cartao', pk=cartao_id)
 
+# Gastos por Categoria
+def gastos_por_categoria(request, categoria_id):
+    gastos = Gasto.objects.filter(categoria__id=categoria_id)
+    return render(request, 'gastos_por_categoria.html', {'gastos': gastos})
 
-
+# Cadastro de Categoria
+def cadastro_categoria(request):
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_cartoes')
+    else:
+        form = CategoriaForm()
+    return render(request, 'cadastro_categoria.html', {'form': form})

@@ -14,20 +14,20 @@
                 <img src="{{ MEDIA_URL }}imagens_cartoes/default_image.jpg" alt="Imagem padrão" class="w-16 h-auto rounded">
                 {% endif %}
                 <div>
-                    <strong class="text-lg font-semibold">{{ cartao.nome }}</strong><br>
-                    <span class="text-sm text-gray-600">Limite: R$ {{ cartao.limite }}</span><br>
-                    <span class="text-sm text-gray-600">Vencimento: {{ cartao.vencimento }}</span>
+                    <strong class="text-xl text-blue-500 font-semibold">{{ cartao.nome }}</strong><br>
+                    <span class="text-sm font-semibold text-gray-800">Limite: R$ {{ cartao.limite }}</span><br>
+                    <span class="text-sm font-semibold text-gray-800">Vencimento: {{ cartao.vencimento }}</span>
                 </div>
             </div>
             <div class="flex justify-end space-x-2">
                 <a href="{% url 'detalhes_cartao' cartao.id %}" class="text-green-500 hover:text-green-700" title="Detalhes">
-                    <i class="bi bi-info-circle text-2xl"></i>
+                    <i class="bi bi-info-circle text-lg"></i>
                 </a>
                 <a href="{% url 'editar_cartao' cartao.id %}" class="text-blue-500 hover:text-blue-700" title="Editar">
-                    <i class="bi bi-pencil text-2xl"></i>
+                    <i class="bi bi-pencil text-lg"></i>
                 </a>
                 <a href="{% url 'excluir_cartao' cartao.id %}" class="text-red-500 hover:text-red-700" title="Excluir">
-                    <i class="bi bi-trash text-2xl"></i>
+                    <i class="bi bi-trash text-lg"></i>
                 </a>
             </div>
         </div>
