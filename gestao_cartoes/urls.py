@@ -6,16 +6,23 @@ from .views import AdicionarCartaoView, ListaCartoesView, DetalhesCartaoView, Re
 from django.urls import path
 from .views import editar_cartao, excluir_cartao_view
 from . import views
+from django.urls import path
+from .views import cadastro_categoria, editar_categoria, excluir_categoria
 urlpatterns = [
     path('', ListaCartoesView.as_view(), name='lista_cartoes'),
     path('<int:pk>/', DetalhesCartaoView.as_view(), name='detalhes_cartao'),
     path('gastos/adicionar/', AdicionarGastoView.as_view(), name='adicionar_gasto'),
     path('gastos/editar/<int:pk>/', EditarGastoView.as_view(), name='editar_gasto'),
     path('relatorio/gastos/', RelatorioGastosView.as_view(), name='relatorio_gastos'),
-    path('cadastro/', cadastro_categoria, name='cadastro_categoria'),  # Corrigido aqui
+    path('categorias/', cadastro_categoria, name='cadastro_categoria'),
+    path('categorias/editar/<int:categoria_id>/', editar_categoria, name='editar_categoria'),
+    path('categorias/excluir/<int:categoria_id>/', excluir_categoria, name='excluir_categoria'),
     path('adicionar/', AdicionarCartaoView.as_view(), name='adicionar_cartao'),
     path('cartao/<int:cartao_id>/editar/', editar_cartao, name='editar_cartao'),
     path('cartao/excluir/<int:pk>/', excluir_cartao_view, name='excluir_cartao'),
     path('gasto/excluir/<int:gasto_id>/', views.excluir_gasto, name='excluir_gasto'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
 

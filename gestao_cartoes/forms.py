@@ -9,34 +9,37 @@ class GastoForm(forms.ModelForm):
     class Meta:
         model = Gasto
         fields = ['cartao', 'valor', 'data', 'categoria', 'descricao', 'parcelas']
-# estilizar com  attrs={'class': 'text-sm'} os campos valor, data, descrição e parcelas
-        widgets = { 'cartao': forms.Select(attrs={'class': 'text-sm'}),
-                    'valor': forms.NumberInput(attrs={'class': 'text-sm'}),
-                    'data': forms.DateInput(attrs={'class': 'text-sm'}),
-                    'categoria': forms.Select(attrs={'class': 'text-sm'}),
-                    'descricao': forms.TextInput(attrs={'class': 'text-sm'}),
-                    'parcelas': forms.NumberInput(attrs={'class': 'text-sm'}),
-                    }
+        widgets = {
+            'cartao': forms.Select(attrs={'class': 'text-sm'}),
+            'valor': forms.NumberInput(attrs={'class': 'text-sm'}),
+            'data': forms.DateInput(attrs={'class': 'text-sm'}),
+            'categoria': forms.Select(attrs={'class': 'text-sm'}),
+            'descricao': forms.TextInput(attrs={'class': 'text-sm'}),
+            'parcelas': forms.NumberInput(attrs={'class': 'text-sm'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super(GastoForm, self).__init__(*args, **kwargs)
         # Adicionando placeholder ao campo 'cartao'
         self.fields['cartao'].widget = forms.Select(
             choices=[('', 'Selecione um cartão')] + list(self.fields['cartao'].choices)[1:],
-            attrs={'class': 'text-sm  text-gray-100'}
+            attrs={'class': 'text-sm text-gray-100'}
         )
         # Adicionando placeholder ao campo 'categoria'
         self.fields['categoria'].widget = forms.Select(
             choices=[('', 'Escolha uma categoria')] + list(self.fields['categoria'].choices)[1:],
-            attrs={'class': 'text-sm  text-gray-200'}
+            attrs={'class': 'text-sm text-gray-200'}
         )
+
 
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria
         fields = ['nome']
         widgets = {
+            'nome': forms.TextInput(attrs={'class': 'text-sm'}),
         }
+
 
 
 
@@ -48,11 +51,14 @@ class CartaoForm(forms.ModelForm):
 
     class Meta:
         model = Cartao
-        fields = ['nome', 'limite', 'vencimento','imagem']
+        fields = ['nome', 'limite', 'vencimento', 'imagem']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
-            # Adicione widgets para os outros campos conforme necessário
+            'limite': forms.NumberInput(attrs={'class': 'form-control'}),
+            'vencimento': forms.NumberInput(attrs={'class': 'form-control'}),
+            'imagem': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
+
         
 class ConfirmDeleteForm(forms.Form):
     confirm = forms.BooleanField(label="Confirma a exclusão?", required=True)

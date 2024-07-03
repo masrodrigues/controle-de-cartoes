@@ -197,12 +197,46 @@ def gastos_por_categoria(request, categoria_id):
     return render(request, 'gastos_por_categoria.html', {'gastos': gastos})
 
 # Cadastro de Categoria
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.views.generic import ListView, DetailView, TemplateView, CreateView, UpdateView
+from django.views.generic.edit import DeleteView
+from django.utils import timezone
+from django.db import transaction
+from django.db.models import Sum, Q
+from datetime import datetime, date, timedelta
+from .models import Cartao, Gasto, Categoria
+from .forms import GastoForm, CartaoForm, CategoriaForm, ConfirmDeleteForm
+
+# Cadastro de Categoria
 def cadastro_categoria(request):
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('lista_cartoes')
+            return redirect('cadastro_categoria')
     else:
         form = CategoriaForm()
-    return render(request, 'cadastro_categoria.html', {'form': form})
+    
+    categorias = Categoria.objects.all()
+    return render(request, 'cadastro_categoria.html', {'form': form, 'categorias': categorias})
+
+# Editar Categoria
+def editar_categoria(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            return redirect('cadastro_categoria')
+    else:
+        form = CategoriaForm(instance=categoria)
+    return render(request, 'editar_categoria.html', {'form': form, 'categorias': categoria})
+
+# Excluir Categoria
+def excluir_categoria(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    if request.method == 'POST':
+        categoria.delete()
+        return redirect('cadastro_categoria')
+    return render(request, 'confirmar_exclusao_categoria.html', {'categorias': categoria})

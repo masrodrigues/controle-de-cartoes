@@ -31,13 +31,17 @@
             </div>
             <!-- Campo de upload de imagem -->
             <div class="mb-3">
-                <label for="{{ form.imagem.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Imagem do Cartão:</label>
-                {{ form.imagem|add_class:"shadow appearance-none border-none rounded w-full py-2 px-3 text-gray-700" }}
+                <label for="{{ form.imagem.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-1">Imagem do Cartão:</label>
+                <div class="custom-file">
+                    {{ form.imagem|add_class:"custom-file-input" }}
+                    <label class="custom-file-label" for="{{ form.imagem.id_for_label }}">Escolha um arquivo</label>
+                </div>
                 {% if form.imagem.errors %}
                     <p class="text-red-500 text-xs italic">{{ form.imagem.errors|join:", " }}</p>
                 {% endif %}
             </div>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Salvar</button>
+            
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"><i class="bi bi-save"></i> Salvar</button>
         </form>
     </div>
 </div>
