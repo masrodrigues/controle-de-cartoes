@@ -2,14 +2,26 @@
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import AdicionarCartaoView, ListaCartoesView, DetalhesCartaoView, RelatorioGastosView, AdicionarGastoView, EditarGastoView, cadastro_categoria
-from django.urls import path
-from .views import editar_cartao, excluir_cartao_view
+from django.contrib.auth import views as auth_views
 from . import views
-from django.urls import path
-from .views import cadastro_categoria, editar_categoria, excluir_categoria
+from .views import (
+    AdicionarCartaoView,
+    ListaCartoesView,
+    DetalhesCartaoView,
+    RelatorioGastosView,
+    AdicionarGastoView,
+    EditarGastoView,
+    cadastro_categoria,
+    editar_cartao,
+    excluir_cartao_view,
+    excluir_gasto,
+    editar_categoria,
+    excluir_categoria
+)
+
 urlpatterns = [
-    path('', ListaCartoesView.as_view(), name='lista_cartoes'),
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('lista_cartoes/', ListaCartoesView.as_view(), name='lista_cartoes'),
     path('<int:pk>/', DetalhesCartaoView.as_view(), name='detalhes_cartao'),
     path('gastos/adicionar/', AdicionarGastoView.as_view(), name='adicionar_gasto'),
     path('gastos/editar/<int:pk>/', EditarGastoView.as_view(), name='editar_gasto'),
@@ -20,9 +32,6 @@ urlpatterns = [
     path('adicionar/', AdicionarCartaoView.as_view(), name='adicionar_cartao'),
     path('cartao/<int:cartao_id>/editar/', editar_cartao, name='editar_cartao'),
     path('cartao/excluir/<int:pk>/', excluir_cartao_view, name='excluir_cartao'),
-    path('gasto/excluir/<int:gasto_id>/', views.excluir_gasto, name='excluir_gasto'),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-
-
+    path('gasto/excluir/<int:gasto_id>/', excluir_gasto, name='excluir_gasto'),
+    path('register/', views.register, name='register'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

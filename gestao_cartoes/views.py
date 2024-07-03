@@ -6,7 +6,8 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Sum, Q
 from datetime import datetime, date, timedelta
-
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from .models import Cartao, Gasto
 from .forms import GastoForm, CartaoForm, CategoriaForm, ConfirmDeleteForm
 
@@ -14,12 +15,13 @@ import logging
 
 # Configura o logger para o Django
 logger = logging.getLogger(__name__)
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-# Lista de Cartões
-class ListaCartoesView(ListView):
+class ListaCartoesView(LoginRequiredMixin, ListView):
     model = Cartao
     template_name = 'lista_cartoes.html'
     context_object_name = 'cartoes'
+
 
 # Detalhes do Cartão
 from datetime import date, timedelta
@@ -240,3 +242,21 @@ def excluir_categoria(request, categoria_id):
         categoria.delete()
         return redirect('cadastro_categoria')
     return render(request, 'confirmar_exclusao_categoria.html', {'categorias': categoria})
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login, authenticate
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=password)
+            login(request, user)
+            return redirect('lista_cartoes')
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})

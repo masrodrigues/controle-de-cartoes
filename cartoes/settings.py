@@ -52,6 +52,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+
 ROOT_URLCONF = 'cartoes.urls'
 
 TEMPLATES = [
@@ -143,3 +148,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 
+# settings.py
+
+LOGIN_REDIRECT_URL = 'lista_cartoes'  # Redirecionar para esta URL após o login bem-sucedido
+LOGOUT_REDIRECT_URL = 'login'         # Redirecionar para a página de login após o logout
