@@ -22,6 +22,10 @@ class ListaCartoesView(ListView):
     context_object_name = 'cartoes'
 
 # Detalhes do Cartão
+from datetime import date, timedelta
+from django.views.generic.detail import DetailView
+from .models import Cartao, Gasto
+
 class DetalhesCartaoView(DetailView):
     model = Cartao
     template_name = 'detalhes_cartao.html'
@@ -30,7 +34,7 @@ class DetalhesCartaoView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         cartao = self.object
-        
+
         hoje = date.today()
         vencimento_dia = cartao.vencimento
 
@@ -43,19 +47,18 @@ class DetalhesCartaoView(DetailView):
             ano_vencimento = hoje.year
 
         proximo_vencimento = date(ano_vencimento, mes_vencimento, vencimento_dia)
-        
+
         # Ajusta a data de fechamento para ser 10 dias antes do próximo vencimento
         data_fim = proximo_vencimento - timedelta(days=10)
-        
+
         # Calcula a data de início como 30 dias antes da data de fim
         data_inicio = data_fim - timedelta(days=30)
 
-        # Formatar datas para comparação precisa
-        data_inicio_str = data_inicio.strftime('%Y-%m-%d')
-        data_fim_str = data_fim.strftime('%Y-%m-%d')
+        gastos = Gasto.objects.filter(cartao=cartao, data__gte=data_inicio, data__lt=data_fim)
+        total_gastos = gastos.aggregate(Sum('valor'))['valor__sum'] or 0
 
-        gastos = Gasto.objects.filter(cartao=cartao, data__gte=data_inicio_str, data__lt=data_fim_str)
-
+        context['data_fechamento'] = data_fim
+        context['total_gastos'] = total_gastos
         context['gastos'] = gastos
         return context
 

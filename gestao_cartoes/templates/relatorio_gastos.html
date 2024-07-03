@@ -8,18 +8,18 @@
     <h2 class="text-2xl font-bold mb-6">Relatório de Gastos por Cartão - Mês: {{ nome_mes_selecionado }}</h2>
     
     <!-- Seleção de Mês -->
-    <div class="mb-4">
+    <div class="mb-4 flex flex-wrap">
         {% for mes, nome_mes in meses %}
-        <a href="?mes={{ mes }}" class="mr-2 py-1 px-3 {% if mes == mes_selecionado %}bg-red-500{% else %}bg-blue-500{% endif %} text-white rounded">{{ nome_mes }}</a>
+        <a href="?mes={{ mes }}" class="mr-2 mb-2 py-1 px-2.5 {% if mes == mes_selecionado %}bg-red-500{% else %}bg-blue-500{% endif %} text-white rounded">{{ nome_mes }}</a>
         {% endfor %}
     </div>
     
     <!-- Tabela de Gastos -->
     <div class="overflow-x-auto">
-        <table class="min-w-full table-auto bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <table class="min-w-full table-auto bg-white shadow-md rounded px-4 pt-6 pb-8 mb-4">
             <thead class="bg-gray-200">
                 <tr>
-                    <th class="px-4 py-2 text-left">Cartão</th>
+                    <th class="px-8 py-2 text-left">Cartão</th>
                     <th class="px-4 py-2 text-left">Total de Gastos</th>
                 </tr>
             </thead>
