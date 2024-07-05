@@ -29,7 +29,7 @@
                         {% else %}
                         <img src="{{ MEDIA_URL }}imagens_cartoes/default_image.jpg" alt="Imagem padrão" class="w-10 h-auto mr-4 rounded">
                         {% endif %}
-                        <a href="#" class="cartao-link" data-cartao-id="{{ item.cartao.id }}">{{ item.cartao.nome }}</a>
+                        <a href="#" class="cartao-link" data-cartao-id="{{ item.cartao.id }}" data-total-gastos="{{ item.total_gastos | floatformat:2 }}">{{ item.cartao.nome }}</a>
                     </td>
                     <td class="border px-4 py-2">{{ item.total_gastos | floatformat:2 }}</td>
                 </tr>
@@ -57,18 +57,19 @@
                 </svg>
             </button>
             <div class="flex items-center mb-4">
-                <img id="modalCartaoImagem" src="" alt="Imagem do Cartão" class="w-10 h-auto mr-4 rounded hidden">
-                <h2 id="modalCartaoNome" class="text-xl font-bold">Gastos do Cartão</h2>
+                <img id="modalCartaoImagem" src="" alt="Imagem do Cartão" class="w-10 h-auto mr-2 rounded hidden">
+                <h2 id="modalCartaoNome" class="text-xl font-bold">Cartão</h2>
+                <span id="modalTotalGastos" class="ml-6 py-1 px-3 bg-blue-500 text-white rounded-lg"></span>
             </div>
             <table class="min-w-full table-auto">
                 <thead class="bg-gray-200">
                     <tr>
-                        <th class="px-4 py-2 text-left" style="width: 52%;">Descrição</th>
-                        <th class="px-4 py-2 text-left" style="width: 30%;">Valor</th>
-                        <th class="px-4 py-2 text-left" style="width: 18%;">Data</th>
+                        <th class="px-4 py-2 text-right" style="width: 52%;">Descrição</th>
+                        <th class="px-4 py-2 text-right" style="width: 30%;">Valor</th>
+                        <th class="px-4 py-2 text-right" style="width: 18%;">Data</th>
                     </tr>
                 </thead>
-                <tbody id="gastosList" class="text-gray-700">
+                <tbody id="gastosList" class="text-gray-700 hover:to-blue-400">
                     <!-- Os gastos serão carregados aqui via JavaScript -->
                 </tbody>
             </table>
@@ -87,6 +88,7 @@
         const closeModalButton2 = document.getElementById('closeModalButton');
         const modalCartaoImagem = document.getElementById('modalCartaoImagem');
         const modalCartaoNome = document.getElementById('modalCartaoNome');
+        const modalTotalGastos = document.getElementById('modalTotalGastos');
 
         document.querySelectorAll('.cartao-link').forEach(function(link) {
             link.addEventListener('click', function(event) {
@@ -94,9 +96,11 @@
                 const cartaoId = this.getAttribute('data-cartao-id');
                 const cartaoNome = this.textContent;
                 const cartaoImagem = this.previousElementSibling.getAttribute('src');
+                const totalGastos = parseFloat(this.getAttribute('data-total-gastos')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                 const mesSelecionado = '{{ mes_selecionado }}';
 
-                modalCartaoNome.textContent = `Gastos do Cartão: ${cartaoNome}`;
+                modalCartaoNome.textContent = `Cartão ${cartaoNome}`;
+                modalTotalGastos.textContent = `Total ${totalGastos}`;
                 if (cartaoImagem) {
                     modalCartaoImagem.src = cartaoImagem;
                     modalCartaoImagem.classList.remove('hidden');
@@ -111,9 +115,11 @@
                         if (data.gastos && data.gastos.length > 0) {
                             data.gastos.forEach(gasto => {
                                 const row = document.createElement('tr');
+                                row.classList.add('hover:bg-gray-100');  // Classe de hover adicionada aqui
+                                const valorGasto = parseFloat(gasto.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                                 row.innerHTML = `
                                     <td class="border px-4 py-2">${gasto.descricao}</td>
-                                    <td class="border px-4 py-2">R$ ${parseFloat(gasto.valor).toFixed(2)}</td>
+                                    <td class="border px-4 py-2">${valorGasto}</td>
                                     <td class="border px-4 py-2">${new Date(gasto.data).toLocaleDateString()}</td>
                                 `;
                                 gastosList.appendChild(row);
