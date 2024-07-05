@@ -1,8 +1,5 @@
 {% extends 'base.html' %}
 
-{% load static %}
-{% load meus_filtros %}
-
 {% block content %}
 <div class="max-w-6xl mx-auto py-8 px-4">
     <h2 class="text-2xl font-bold mb-6">Relatório de Gastos por Cartão - Mês: {{ nome_mes_selecionado }}</h2>
@@ -32,7 +29,7 @@
                         {% else %}
                         <img src="{{ MEDIA_URL }}imagens_cartoes/default_image.jpg" alt="Imagem padrão" class="w-10 h-auto mr-4 rounded">
                         {% endif %}
-                        {{ item.cartao.nome }}
+                        <a href="#" class="cartao-link" data-cartao-id="{{ item.cartao.id }}">{{ item.cartao.nome }}</a>
                     </td>
                     <td class="border px-4 py-2">{{ item.total_gastos | floatformat:2 }}</td>
                 </tr>
@@ -49,4 +46,105 @@
         </table>
     </div>
 </div>
+
+<!-- Modal -->
+<div id="gastosModal" class="fixed z-50 inset-0 overflow-y-auto hidden">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-auto relative">
+            <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <div class="flex items-center mb-4">
+                <img id="modalCartaoImagem" src="" alt="Imagem do Cartão" class="w-10 h-auto mr-4 rounded hidden">
+                <h2 id="modalCartaoNome" class="text-xl font-bold">Gastos do Cartão</h2>
+            </div>
+            <table class="min-w-full table-auto">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="px-4 py-2 text-left" style="width: 52%;">Descrição</th>
+                        <th class="px-4 py-2 text-left" style="width: 30%;">Valor</th>
+                        <th class="px-4 py-2 text-left" style="width: 18%;">Data</th>
+                    </tr>
+                </thead>
+                <tbody id="gastosList" class="text-gray-700">
+                    <!-- Os gastos serão carregados aqui via JavaScript -->
+                </tbody>
+            </table>
+            <button id="closeModalButton" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Fechar</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('gastosModal');
+        const gastosList = document.getElementById('gastosList');
+        const closeModalButton = document.getElementById('closeModal');
+        const closeModalButton2 = document.getElementById('closeModalButton');
+        const modalCartaoImagem = document.getElementById('modalCartaoImagem');
+        const modalCartaoNome = document.getElementById('modalCartaoNome');
+
+        document.querySelectorAll('.cartao-link').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const cartaoId = this.getAttribute('data-cartao-id');
+                const cartaoNome = this.textContent;
+                const cartaoImagem = this.previousElementSibling.getAttribute('src');
+                const mesSelecionado = '{{ mes_selecionado }}';
+
+                modalCartaoNome.textContent = `Gastos do Cartão: ${cartaoNome}`;
+                if (cartaoImagem) {
+                    modalCartaoImagem.src = cartaoImagem;
+                    modalCartaoImagem.classList.remove('hidden');
+                } else {
+                    modalCartaoImagem.classList.add('hidden');
+                }
+
+                fetch(`/gestao_cartoes/cartao/${cartaoId}/gastos/?mes=${mesSelecionado}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        gastosList.innerHTML = '';
+                        if (data.gastos && data.gastos.length > 0) {
+                            data.gastos.forEach(gasto => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td class="border px-4 py-2">${gasto.descricao}</td>
+                                    <td class="border px-4 py-2">R$ ${parseFloat(gasto.valor).toFixed(2)}</td>
+                                    <td class="border px-4 py-2">${new Date(gasto.data).toLocaleDateString()}</td>
+                                `;
+                                gastosList.appendChild(row);
+                            });
+                        } else {
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.innerHTML = `
+                                <td class="border px-4 py-2 text-center" colspan="3">Nenhum gasto encontrado.</td>
+                            `;
+                            gastosList.appendChild(emptyRow);
+                        }
+                        modal.classList.remove('hidden');
+                    })
+                    .catch(error => {
+                        const errorRow = document.createElement('tr');
+                        errorRow.innerHTML = `
+                            <td class="border px-4 py-2 text-center text-red-500" colspan="3">Erro ao carregar os gastos. Tente novamente.</td>
+                        `;
+                        gastosList.appendChild(errorRow);
+                        modal.classList.remove('hidden');
+                    });
+            });
+        });
+
+        closeModalButton.addEventListener('click', function() {
+            modal.classList.add('hidden');
+        });
+
+        closeModalButton2.addEventListener('click', function() {
+            modal.classList.add('hidden');
+        });
+    });
+</script>
 {% endblock %}

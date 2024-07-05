@@ -3,6 +3,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+from .views import gastos_do_cartao
 from . import views
 from .views import (
     AdicionarCartaoView,
@@ -16,7 +17,8 @@ from .views import (
     excluir_cartao_view,
     excluir_gasto,
     editar_categoria,
-    excluir_categoria
+    excluir_categoria,
+    
 )
 
 urlpatterns = [
@@ -35,4 +37,5 @@ urlpatterns = [
     path('gasto/excluir/<int:gasto_id>/', excluir_gasto, name='excluir_gasto'),
     path('register/', views.register, name='register'),
     path('logout/', views.logout_view, name='logout'),
+    path('cartao/<int:cartao_id>/gastos/', gastos_do_cartao, name='gastos_do_cartao'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

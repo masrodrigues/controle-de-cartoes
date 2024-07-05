@@ -95,12 +95,10 @@ class EditarGastoView(UpdateView):
     template_name = 'editar_gasto.html'
     success_url = reverse_lazy('lista_cartoes')
 
-# Relatório de Gastos
 from django.views.generic import TemplateView
 from django.utils import timezone
 from django.db.models import Sum
-from datetime import datetime
-
+from datetime import date, timedelta
 from .models import Gasto, Cartao
 
 class RelatorioGastosView(TemplateView):
@@ -119,21 +117,31 @@ class RelatorioGastosView(TemplateView):
         context['nome_mes_selecionado'] = self.mapear_numero_para_mes(mes_atual)
         context['meses'] = [(i, self.mapear_numero_para_mes(i)) for i in range(1, 13)]
 
-        # Filtrar gastos por mês
-        primeiro_dia_mes = datetime(ano_atual, mes_atual, 1)
-        ultimo_dia_mes = datetime(ano_atual, mes_atual + 1, 1) if mes_atual < 12 else datetime(ano_atual + 1, 1, 1)
-        gastos_mes = Gasto.objects.filter(data__gte=primeiro_dia_mes, data__lt=ultimo_dia_mes).order_by('cartao')
-        
-        relatorio = {}
+        # Filtrar gastos por mês usando o período de fechamento
+        relatorio = []
         total_gastos_geral = 0
-        for gasto in gastos_mes:
-            if gasto.cartao not in relatorio:
-                relatorio[gasto.cartao] = 0
-            relatorio[gasto.cartao] += gasto.valor
-            total_gastos_geral += gasto.valor  # Calculando o total geral de gastos
-        
-        context['relatorio'] = [{'cartao': cartao, 'total_gastos': total} for cartao, total in relatorio.items()]
-        context['total_gastos_geral'] = total_gastos_geral  # Adicionando o total geral ao contexto
+        cartoes = Cartao.objects.all()
+
+        for cartao in cartoes:
+            # Definindo o próximo vencimento para o mês atual selecionado
+            mes_vencimento = mes_atual if mes_atual >= date.today().month else mes_atual + 1
+            ano_vencimento = ano_atual if mes_vencimento >= date.today().month else ano_atual + 1
+            proximo_vencimento = date(ano_vencimento, mes_vencimento, cartao.vencimento)
+
+            # Ajusta a data de fechamento para ser 10 dias antes do próximo vencimento
+            data_fim = proximo_vencimento - timedelta(days=10)
+            data_inicio = data_fim - timedelta(days=30)
+
+            # Filtra os gastos do cartão usando o período de fechamento
+            gastos = Gasto.objects.filter(cartao=cartao, data__gte=data_inicio, data__lt=data_fim)
+            total_gastos = gastos.aggregate(Sum('valor'))['valor__sum'] or 0
+
+            if total_gastos > 0:
+                relatorio.append({'cartao': cartao, 'total_gastos': total_gastos})
+                total_gastos_geral += total_gastos
+
+        context['relatorio'] = relatorio
+        context['total_gastos_geral'] = total_gastos_geral
 
         return context
 
@@ -144,6 +152,7 @@ class RelatorioGastosView(TemplateView):
             9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
         }
         return meses.get(numero_mes, "Mês Inválido")
+
 
 
 
@@ -268,3 +277,37 @@ from django.contrib.auth import logout
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+# views.py
+
+from django.http import JsonResponse
+
+@login_required
+def gastos_do_cartao(request, cartao_id):
+    try:
+        cartao = Cartao.objects.get(id=cartao_id)
+    except Cartao.DoesNotExist:
+        return JsonResponse({'error': 'Cartão não encontrado'}, status=404)
+
+    mes_param = request.GET.get('mes', None)
+    ano_atual = timezone.now().year
+    mes_atual = timezone.now().month
+    if mes_param and mes_param.isdigit():
+        mes_num = int(mes_param)
+        if 1 <= mes_num <= 12:
+            mes_atual = mes_num
+
+    # Definindo o próximo vencimento para o mês atual selecionado
+    mes_vencimento = mes_atual if mes_atual >= date.today().month else mes_atual + 1
+    ano_vencimento = ano_atual if mes_vencimento >= date.today().month else ano_atual + 1
+    proximo_vencimento = date(ano_vencimento, mes_vencimento, cartao.vencimento)
+
+    # Ajusta a data de fechamento para ser 10 dias antes do próximo vencimento
+    data_fim = proximo_vencimento - timedelta(days=10)
+    data_inicio = data_fim - timedelta(days=30)
+
+    # Filtra os gastos do cartão usando o período de fechamento
+    gastos = Gasto.objects.filter(cartao=cartao, data__gte=data_inicio, data__lt=data_fim)
+
+    gastos_data = list(gastos.values('descricao', 'valor', 'data'))
+    return JsonResponse({'gastos': gastos_data})
