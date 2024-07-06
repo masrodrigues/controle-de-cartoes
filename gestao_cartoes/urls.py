@@ -18,6 +18,7 @@ from .views import (
     excluir_gasto,
     editar_categoria,
     excluir_categoria,
+   
     
 )
 
@@ -38,4 +39,5 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('cartao/<int:cartao_id>/gastos/', gastos_do_cartao, name='gastos_do_cartao'),
+   
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

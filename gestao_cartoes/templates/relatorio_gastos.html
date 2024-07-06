@@ -58,8 +58,8 @@
             </button>
             <div class="flex items-center mb-4">
                 <img id="modalCartaoImagem" src="" alt="Imagem do Cartão" class="w-10 h-auto mr-2 rounded hidden">
-                <h2 id="modalCartaoNome" class="text-xl font-bold">Cartão</h2>
-                <span id="modalTotalGastos" class="ml-6 py-1 px-3 bg-blue-500 text-white rounded-lg"></span>
+                <h2 id="modalCartaoNome" class="text-xl font-bold">Gastos do Cartão</h2>
+                <span id="modalTotalGastos" class="ml-2 py-1 px-3 bg-green-500 text-white rounded-lg"></span>
             </div>
             <table class="min-w-full table-auto">
                 <thead class="bg-gray-200">
@@ -99,8 +99,8 @@
                 const totalGastos = parseFloat(this.getAttribute('data-total-gastos')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                 const mesSelecionado = '{{ mes_selecionado }}';
 
-                modalCartaoNome.textContent = `Cartão ${cartaoNome}`;
-                modalTotalGastos.textContent = `Total ${totalGastos}`;
+                modalCartaoNome.textContent = `Gastos do Cartão: ${cartaoNome}`;
+                modalTotalGastos.textContent = `Total: ${totalGastos}`;
                 if (cartaoImagem) {
                     modalCartaoImagem.src = cartaoImagem;
                     modalCartaoImagem.classList.remove('hidden');
@@ -151,6 +151,18 @@
         closeModalButton2.addEventListener('click', function() {
             modal.classList.add('hidden');
         });
+
+        // Formatar valores do relatório principal
+        document.querySelectorAll('.cartao-link').forEach(function(link) {
+            const totalGastosElement = link.parentElement.nextElementSibling;
+            const totalGastosValue = parseFloat(totalGastosElement.textContent);
+            totalGastosElement.textContent = totalGastosValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        });
+
+        // Formatar valor total geral
+        const totalGeralElement = document.querySelector('td.font-bold:last-of-type');
+        const totalGeralValue = parseFloat(totalGeralElement.textContent);
+        totalGeralElement.textContent = totalGeralValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     });
 </script>
 {% endblock %}
