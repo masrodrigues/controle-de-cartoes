@@ -93,12 +93,14 @@
         document.querySelectorAll('.cartao-link').forEach(function(link) {
             link.addEventListener('click', function(event) {
                 event.preventDefault();
+
                 const cartaoId = this.getAttribute('data-cartao-id');
-                const cartaoNome = this.textContent;
+                const cartaoNome = this.textContent.trim();
                 const cartaoImagem = this.previousElementSibling.getAttribute('src');
                 const totalGastos = parseFloat(this.getAttribute('data-total-gastos')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                 const mesSelecionado = '{{ mes_selecionado }}';
 
+                // Configuração do modal
                 modalCartaoNome.textContent = `Gastos do Cartão: ${cartaoNome}`;
                 modalTotalGastos.textContent = `Total: ${totalGastos}`;
                 if (cartaoImagem) {
@@ -108,49 +110,140 @@
                     modalCartaoImagem.classList.add('hidden');
                 }
 
+                // Limpa a lista antes de carregar novos dados
+                gastosList.innerHTML = '<tr><td colspan="4" class="text-center">Carregando...</td></tr>';
+
+                // Requisição para buscar os gastos
                 fetch(`/gestao_cartoes/cartao/${cartaoId}/gastos/?mes=${mesSelecionado}`)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro ao carregar os dados do servidor.');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
-                        gastosList.innerHTML = '';
+                        gastosList.innerHTML = ''; // Limpa lista de gastos
                         if (data.gastos && data.gastos.length > 0) {
                             data.gastos.forEach(gasto => {
                                 const row = document.createElement('tr');
-                                row.classList.add('hover:bg-gray-100');  // Classe de hover adicionada aqui
+                                row.classList.add('hover:bg-gray-100');
                                 const valorGasto = parseFloat(gasto.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    
+                                // Certifique-se de que gasto.id está sendo corretamente inserido
                                 row.innerHTML = `
                                     <td class="border px-4 py-2">${gasto.descricao}</td>
                                     <td class="border px-4 py-2">${valorGasto}</td>
                                     <td class="border px-4 py-2">${new Date(gasto.data).toLocaleDateString()}</td>
+                                    <td class="border px-4 py-2 text-center">
+                                        <form method="POST" action="/gestao_cartoes/gasto/excluir/${gasto.id}/" onsubmit="return handleDelete(this);">
+                                            <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''}">
+                                            <button type="submit" class="text-red-500 hover:text-red-700">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
                                 `;
                                 gastosList.appendChild(row);
                             });
                         } else {
                             const emptyRow = document.createElement('tr');
                             emptyRow.innerHTML = `
-                                <td class="border px-4 py-2 text-center" colspan="3">Nenhum gasto encontrado.</td>
+                                <td class="border px-4 py-2 text-center" colspan="4">Nenhum gasto encontrado.</td>
                             `;
                             gastosList.appendChild(emptyRow);
                         }
-                        modal.classList.remove('hidden');
+                        modal.classList.remove('hidden'); // Exibe o modal
                     })
+                    
+                    
                     .catch(error => {
-                        const errorRow = document.createElement('tr');
-                        errorRow.innerHTML = `
-                            <td class="border px-4 py-2 text-center text-red-500" colspan="3">Erro ao carregar os gastos. Tente novamente.</td>
+                        console.error('Erro ao carregar os gastos:', error);
+                        gastosList.innerHTML = `
+                            <tr>
+                                <td class="border px-4 py-2 text-center text-red-500" colspan="4">Erro ao carregar os gastos. Tente novamente.</td>
+                            </tr>
                         `;
-                        gastosList.appendChild(errorRow);
                         modal.classList.remove('hidden');
                     });
             });
         });
 
-        closeModalButton.addEventListener('click', function() {
-            modal.classList.add('hidden');
+        // Fecha o modal ao clicar nos botões de fechar
+        [closeModalButton, closeModalButton2].forEach(button => {
+            button.addEventListener('click', function() {
+                modal.classList.add('hidden');
+            });
         });
 
-        closeModalButton2.addEventListener('click', function() {
-            modal.classList.add('hidden');
-        });
+        // Manipulação para fechar o modal após exclusão
+        window.handleDelete = function (form) {
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // Assumindo que você retorna a lista de gastos atualizada
+                } else {
+                    throw new Error('Erro ao excluir o gasto.');
+                }
+            })
+            .then(data => {
+                // Atualiza o modal com a nova lista de gastos
+                updateModalGastos(data.novos_gastos, data.total_atualizado);
+                alert('Gasto excluído com sucesso!');
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Erro ao excluir o gasto. Tente novamente.');
+            });
+        
+            return false; // Previne o envio padrão do formulário
+        };
+        
+        
+        // Função auxiliar para atualizar a lista de gastos e total no modal
+        function updateModalGastos(gastos, totalAtualizado) {
+            gastosList.innerHTML = ''; // Limpa lista de gastos
+        
+            if (gastos.length > 0) {
+                gastos.forEach(gasto => {
+                    const row = document.createElement('tr');
+                    row.classList.add('hover:bg-gray-100');
+                    const valorGasto = parseFloat(gasto.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        
+                    row.innerHTML = `
+                        <td class="border px-4 py-2">${gasto.descricao}</td>
+                        <td class="border px-4 py-2">${valorGasto}</td>
+                        <td class="border px-4 py-2">${new Date(gasto.data).toLocaleDateString()}</td>
+                        <td class="border px-4 py-2 text-center">
+                           <!-- Formulário de exclusão com CSRF -->
+                        <form method="POST" action="/gestao_cartoes/gasto/excluir/${gasto.id}/" onsubmit="return handleDelete(this);">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''}">
+                            <button type="submit" class="text-red-500 hover:text-red-700">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+
+                        </td>
+                    `;
+                    gastosList.appendChild(row);
+                });
+            } else {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `
+                    <td class="border px-4 py-2 text-center" colspan="4">Nenhum gasto encontrado.</td>
+                `;
+                gastosList.appendChild(emptyRow);
+            }
+        
+            // Atualize o total de gastos exibido no modal
+            modalTotalGastos.textContent = `Total: ${parseFloat(totalAtualizado).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+        }
+        
 
         // Formatar valores do relatório principal
         document.querySelectorAll('.cartao-link').forEach(function(link) {
@@ -161,8 +254,11 @@
 
         // Formatar valor total geral
         const totalGeralElement = document.querySelector('td.font-bold:last-of-type');
-        const totalGeralValue = parseFloat(totalGeralElement.textContent);
-        totalGeralElement.textContent = totalGeralValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        if (totalGeralElement) {
+            const totalGeralValue = parseFloat(totalGeralElement.textContent);
+            totalGeralElement.textContent = totalGeralValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
     });
 </script>
+
 {% endblock %}
